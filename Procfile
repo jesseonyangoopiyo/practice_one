@@ -1,1 +1,1 @@
-web: gunicorn testproject:app
+web: gunicorn practiceonetest:app

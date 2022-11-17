@@ -1,14 +1,10 @@
-import sys 
+from flask import Flask
 
-print (sys.version)
-print(sys.executable)
+app = Flask(__name__)
 
+@app.route('/')
+def home():
+    return "Flask heroku app."
 
-def greet(who_to_greet):
-    greeting = 'Hello, {}'.format(who_to_greet)
-    return greeting 
-
-
-print(greet('World'))
-print(greet('Jesse'))
-
+    if __name__ == '__main__':
+        app.run()
