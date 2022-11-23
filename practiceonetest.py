@@ -1,64 +1,72 @@
 #Code from user @Kjmczk with edits by Jesse
-
-from flask import Flask, request, render_template, redirect
+from flask import Flask,render_template,request,redirect
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-import os
 
-app = Flask(__name__)
-project_dir = os.path.dirname(os.path.abspath(__file__))
-database_file = "sqlite:///{}".format(os.path.join(project_dir, "todo.db"))
-app.config["SQLALCHEMY_DATABASE_URI"] = database_file
-db = SQLAlchemy(app)
+app=Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///posts.db'
+db=SQLAlchemy(app)
+
+class BlogPost(db.Model):
+    id=db.Column(db.Integer,primary_key=True)
+    title=db.Column(db.String(100),nullable=False)
+    content=db.Column(db.Text,nullable=False)
+    author=db.Column(db.String(20),nullable=False,default="N/A")
+    date_posted=db.Column(db.DateTime,nullable=False,default=datetime.utcnow)
+
+    def __repr__(self):
+        return 'Blog post '+ str(self.id)
 
 
-class Note(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    text = db.Column(db.Text)
-    done = db.Column(db.Boolean)
-    dateAdded = db.Column(db.DateTime, default=datetime.now())
+@app.route('/')
+def index():
+    return render_template("index.html")
+
+@app.route('/posts',methods=["GET","POST"])
+def posts():
+    all_posts=BlogPost.query.order_by(BlogPost.date_posted).all()
+    return render_template('posts.html',posts=all_posts)
 
 
-def create_note(text):
-    note = Note(text=text)
-    db.session.add(note)
+@app.route('/home/users/<string:name>/posts/<int:id>')
+def hello(name,id):
+    return "<h1>hello "+name+"</h1>"+ "post id is "+str(id)
+
+@app.route('/onlyget',methods=["GET","POST"])
+def get_only():
+    return "<h2> you can only get this webpage</h2>"
+
+@app.route('/posts/delete/<int:id>')
+def delete(id):
+    post=BlogPost.query.get_or_404(id)
+    db.session.delete(post)
     db.session.commit()
-    db.session.refresh(note)
+    return redirect('/posts')
 
+@app.route('/posts/edit/<int:id>',methods=['GET','POST'])
+def edit(id):
+    post=BlogPost.query.get_or_404(id)
+    if request.method=='POST':
+        post.title=request.form['title']
+        post.content=request.form['content']
+        post.author=request.form['author']
+        db.session.commit()
+        return redirect('/posts')
+    else:
+        return render_template('edit.html',post=post)
 
-def read_notes():
-    return db.session.query(Note).all()
+@app.route('/posts/new',methods=["GET","POST"])
+def new_post():
+    if request.method== 'POST':
+        post_title=request.form['title']
+        post_content=request.form['content']
+        post_author=request.form['author']
+        new_post =BlogPost(title=post_title,content=post_content,author=post_author)
+        db.session.add(new_post)
+        db.session.commit()
+        return redirect('/posts')
+    else:
+        return render_template('new_post.html')
 
-
-def update_note(note_id, text, done):
-    db.session.query(Note).filter_by(id=note_id).update({
-        "text": text,
-        "done": True if done == "on" else False
-    })
-    db.session.commit()
-
-
-def delete_note(note_id):
-    db.session.query(Note).filter_by(id=note_id).delete()
-    db.session.commit()
-
-
-@app.route("/", methods=["POST", "GET"])
-def view_index():
-    if request.method == "POST":
-        create_note(request.form['text'])
-    return render_template("index.html", notes=read_notes())
-
-
-@app.route("/edit/<note_id>", methods=["POST", "GET"])
-def edit_note(note_id):
-    if request.method == "POST":
-        update_note(note_id, text=request.form['text'], done=request.form['done'])
-    elif request.method == "GET":
-        delete_note(note_id)
-    return redirect("/", code=302)
-
-
-if __name__ == "__main__":
-    db.create_all()
+if __name__== "__main__":
     app.run(debug=True)
