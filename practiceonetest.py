@@ -6,7 +6,7 @@ import os
 app = Flask(__name__)
 project_dir = os.pathdirname(os.path.abspath(__file__))
 database_file = "sqlite:///{}".format(os.path.join(project_dir, "blog.db"))
-app.config["SQLALCHEMY_DATABASE_URI"] = database_file
+app.config["SQLALCHEMY_DATABASE_URI"] = database_file #error here 
 db = SQLAlchemy(app)
 
 class entry(db.Model):
@@ -48,7 +48,7 @@ def edit_entry(entry_id):
     elif request.method == "GET":
         delete_entry(entry_id)
     return redirect("/", code=302)
-
-    if __name__ == '__main__':
+    
+if __name__ == '__main__':
         db.create_all()
         app.run(debug=True)
