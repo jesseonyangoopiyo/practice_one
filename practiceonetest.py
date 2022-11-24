@@ -1,12 +1,13 @@
 from flask import Flask, request, render_template, redirect
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-import os
+#import os
 
 app = Flask(__name__)
-project_dir = os.pathdirname(os.path.abspath(__file__))
-database_file = "sqlite:///{}".format(os.path.join(project_dir, "blog.db"))
-app.config["SQLALCHEMY_DATABASE_URI"] = database_file #error here 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db' #new
+#project_dir = os.pathdirname(os.path.abspath(__file__))
+#database_file = "sqlite:///{}".format(os.path.join(project_dir, "blog.db"))
+#app.config["SQLALCHEMY_DATABASE_URI"] = database_file #error here 
 db = SQLAlchemy(app)
 
 class entry(db.Model):
